@@ -1,0 +1,12 @@
+.container {
+  padding-top: 50px;
+}
+
+.center {
+}
+
+#canvas-video {
+  width: 480px;
+  height: 360px;
+  border: 1px solid #ccc;
+}
