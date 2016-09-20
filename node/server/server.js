@@ -83,7 +83,7 @@ server.listen(app.get('port'), function () {
 	  });
 	  
 	  
-		  var io = require('socket.io')(server);
+		var io = require('socket.io')(server);
 //io.on('connection', require('./lib/routes/socket'));
 //////////////////////////////////////////////////////////
 //Centre de reception des messages après la connexion
@@ -156,13 +156,11 @@ io.on('connection', function (socket) {
   	});
   	
   	socket.on('radar-boucle', function (data) {
-	  	proximity.on("data", function() {
-			distance = this.cm;
-		    console.log("  cm  : ", this.cm);
-		    angle = BoucleRadar(socket, proximity, angle);
-		});	
-		
+	  	BoucleRadar(socket, proximity);	
 	});
+	socket.on('autonomous', function (data) {
+    	autonomous(socket,proximity);
+  	})
   	
 }); //Fin io.on
   	
@@ -413,59 +411,85 @@ function randomInt(low, high) {
 //////////////////////////////////////////////////////////
 //FONCTIONS POUR LE RADAR
 //////////////////////////////////////////////////////////
-function BoucleRadar(socket, proximity, angle) {
-	var pos1 = 30;
-	var distance = proximity.cm;
-	arduinoServos.steering.to(50);
+
+/*function BoucleRadar(socket,proximity) {
+	var animation = new five.Animation(arduinoServos.steering);
+
+  // Create an animation object
+	 animation.enqueue({
+	    duration: 500,
+	    cuePoints: [0,1],
+	    keyFrames: [ {degrees: 40},{degrees: 50}],
+		onstop: console.log('pause')
+	  });
+	  	animation.play();
+
+}*/
+
+function BoucleRadar(socket, proximity) {
+	var posG = 40;
+	var posC = 90;
+	var posD = 180;
+	var coordonnes=[];
 	
-		setTimeout(function() { 
-			for(pos1 = 30; pos1 < 180; pos1 += 15) { 
-			arduinoServos.steering.step(15);
-			distance = proximity.cm; 
-			console.log( "-->[d:" + distance + ",r:" + pos1 + "]");
-			socket.emit('radar-coordonnes', '['+distance+','+pos1+']');
-			}	
-		}, 500);
-		
-		
-		setTimeout(function() { 
-			for(pos1 = 180; pos1>=30; pos1-=15)
-	{
-			arduinoServos.steering.step(15);
-			distance = proximity.cm; 
-			console.log( "-->[d:" + distance + ",r:" + pos1 + "]");
-		socket.emit('radar-coordonnes', '['+distance+','+pos1+']');
+	//On scan a gauche
+	arduinoServos.steering.to(posG,200);
+	arduinoServos.steering.on('move:complete',function() {
+		coordonnes[0] = posG;
+		coordonnes[1] = proximity.cm;		
+	});
+	setTimeout(function() {
+	//On scan au centre
+		arduinoServos.steering.to(posC,200);
+		arduinoServos.steering.on('move:complete',function() {
+			coordonnes[2] = posC;
+			coordonnes[3] = proximity.cm;			
+		});
+		setTimeout(function() {
+			arduinoServos.steering.to(posD,200);
+			arduinoServos.steering.on('move:complete',function() {
+				coordonnes[4] = posD;
+				coordonnes[5] = proximity.cm;
+				arduinoServos.steering.to(posC,1000);
+				socket.emit('coordonnes',coordonnes);
+				console.log(coordonnes);
+			});
+		},1000);
+	}, 1000);
+}
+
+function RadarCallback(options,callback) {
+	callback(options);
+}
+
+
+function autonomous(socket, proximity) {
+	console.log('Debut autonomous');
+	var coordonnes= RadarCallback([socket,proximity], function() {
+       		 BoucleRadar(socket,proximity);
+        });
+	
+	console.log('Fin coordonnes :'+coordonnes);
+	var cote;
+	dGauche=coordonnes[1];
+	dCentre = coordonnes[3];
+	dDroite = coordonnes[5];
+	coordonnes = [coordonnes[1],coordonnes[3],coordonnes[5]];
+	maxDistance = Math.max.apply(null,coordonnes);
+	cote = coordonnes.indexOf(maxDistance);
+	if(cote ==  0) {
+		console.log('Direction Gauche');
+		steerChange('left',255);
+	} else if(cote ==  1) {
+		console.log('Direction Avant');
+		steerChange('forward',255);
+	}else if(cote ==  2) {
+		console.log('Direction Droite');
+		steerChange('right',255);
 	}
-		}, 500);
-				//delay(10);
 	
-	
-	
+	board.wait(1000, function() {
+      motorG.brake();
+      motorD.brake();
+    });
 }
-
-function Radar(socket){
-    var i=0; // distance
-    var j=0; // angle
-    var z=0;
-    var tab=[[107.99,60],[543.04,45],[107.95,30],[543.04,15],
-[543.04,0],[41.58,180],[44.33,165],[107.45,75],[107.99,60],
-[543.04,45],[107.95,30],[543.04,15],[543.04,0],[41.58,180],
-[44.33,165],[45.47,179],[29.36,164],[45.32,149],[45.65,134],
-[30.08,119],[25.70,104],[24.91,89],[30.08,74],[45.14,59],[46.99,44],
-[47.88,29],[194.11,14],[396.15,180],[25.90,165],[26.39,150],[26.99,135],
-[21.09,120],[20.47,105],[20.69,90],[26.95,75],[25.76,60],[26.23,45],
-[26.66,30],[25.18,15],[2.77,0],[2.52,180],[51.60,165],[27.98,150]];
-    for(z=0;z<40;z++) {
-        i= tab[z][0];
-        j= tab[z][1];
-            //Math.floor(Math.random() * (180 - 1) + 1);
-           // setTimeout(function() { }, 500);
-         socket.emit('radar-coordonnes', [i, j]);
-                console.log(z + "-->[d:" + i + ",r:" + j + "]");
-
-
-    }
-
-
-}
-

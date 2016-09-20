@@ -1,3 +1,39 @@
+/*****************************************/
+/*										**/
+/*			Install NodeJS				**/
+/*										**/
+/*****************************************/
+
+> curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
+> sudo apt install -y nodejs
+
+
+
+
+/*****************************************/
+/*										**/
+/*		Drivers ARDUINO MEGA 2560		**/
+/*		Chip chinese module				**/
+/*										**/
+/*****************************************/
+
+technique qui marche!!
+
+http://www.blaxlab.com/2015/06/arduino-mega-2560-clone-comparison-to.html?m=1
+
+trouver sur commentaires Aliexpress ali express
+MAC
+    Download Mac drivers for CH340G from here (Non English site)
+    Run the following command in Terminal: >sudo nvram boot-args="kext-dev-mode=1"
+    Restart system
+RASPBERRY
+	installer les header raspberry pour modif kernel
+	> sudo apt-get -y install raspberrypi-kernel-headers
+	On verifie le code vendor et produit de lobjet usb (arduino ici)
+	> lsusb
+	> sudo modprobe usbserial vendor=0x1a86 product=0x7523
+Pour charger automatiquement à chaque démarrage le module USBSerial, il suffit de rajouter cette ligne dans le fichier “/etc/modules”. 
+usbserial vendor=0x1a86 product=0x7523
 
 /*****************************************/
 /*										**/
@@ -7,8 +43,8 @@
 /*										**/
 /*****************************************/
 
-nano input_uvc_patch
-
+> nano input_uvc_patch
+On copie tout ca dans le fichier
 
 --- plugins/input_uvc/input_uvc.c       (revision 174)
 +++ plugins/input_uvc/input_uvc.c       (working copy)

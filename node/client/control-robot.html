@@ -521,18 +521,21 @@
 	</script>
 
             </div><!-- ./col -->
-            <div class="col-md-3">
+            <div class="col-md-2">
             	<button type="button" id="control-avancer" class="btn btn-primary"> AVANCER</button>
 				<button type="button" id="control-reculer" class="btn btn-primary"> RECULER</button>
 				<button type="button" id="control-gauche" class="btn btn-primary"> GAUCHE</button>
 				<button type="button" id="control-droite" class="btn btn-primary"> DROITE</button>
+				<button type="button" id="autonomous" class="btn btn-primary"> AUTONOMOUS MODE</button>
             </div>
-             <div class="col-md-3">
+             <div class="col-md-2">
             	<button type="button" id="radar-gauche" class="btn btn-primary"> R GAUCHE</button>
             	<button type="button" id="radar-center" class="btn btn-primary"> R CENTER</button>
 				<button type="button" id="radar-droite" class="btn btn-primary"> R DROITE</button>
 				<button type="button" id="radar-sweep" class="btn btn-primary"> R SWEEP</button>
 				<button type="button" id="radar-boucle" class="btn btn-primary"> R Boucle</button>
+				<div id="coordonnees">
+				</div>
 			</div>
 			<div class="col-md-2">
             	<button type="button" id="radar-launch" class="btn btn-primary"> R LAUNCH</button>
@@ -765,6 +768,10 @@
         	console.log('HTML: --->Avancer');
             socket.emit('stop');
         });
+        $('#autonomous').on('mouseup', function(){
+        	console.log('HTML: --->autonomous');
+            socket.emit('autonomous');
+        });
         
           
           
@@ -803,7 +810,9 @@
         //////////////////////////////////////////////////////////
         //Listes des commandes des boutons // Envoi de message au serveur
         //////////////////////////////////////////////////////////
-
+		socket.on("coordonnes", function(data) {
+			$('#coordonnees').append('<br>Nouvelles data<br>-->'+data);
+		});
 
 		
 
