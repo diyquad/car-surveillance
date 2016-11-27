@@ -139,7 +139,7 @@ io.on('connection', function (socket) {
     	steerChange('right',255);
   	});
   	socket.on('stop', function (data) {
-    	steerChange('stop',255);
+    	//steerChange('stop',255);
   	});
   	
   	socket.on('radar-gauche', function (data) {
@@ -171,30 +171,33 @@ io.on('connection', function (socket) {
 module.exports.app = app;
 
 function steerChange (direction,value) {
-console.log("MOTEUR->"+direction+" valeur:"+value);
-
-  if(direction=="forward") {
-  	motorD.reverse(value);
-  	motorG.reverse(value);
-  	
-  } else if(direction=="reverse") {
-  	motorD.forward(value);
-  	motorG.forward(value);
-  	
-  } else if(direction=="left") {
-   	motorG.forward(value);
-  	motorD.reverse(0);
-  } else if(direction=="right") {
-    motorG.forward(0);
-  	motorD.forward(value);
-  } else if(direction=="stop") {
-    motorG.brake();
-  	motorD.brake();
-  }
-  board.wait(1000, function() {
-      motorG.brake();
-      motorD.brake();
-    });
+	console.log("MOTEUR->"+direction+" valeur:"+value);
+	
+	var time = 500;  //Durée du mouvement 
+	if(direction=="reverse") {
+		motorD.reverse(value);
+		motorG.reverse(value);
+		
+	} else if(direction=="forward") {
+		motorD.forward(value);
+		motorG.forward(value);
+		
+	} else if(direction=="left") {
+		motorG.forward(value);
+		motorD.reverse(0);
+	} else if(direction=="right") {
+	motorG.forward(0);
+		motorD.forward(value);
+		time = 100;
+	} else if(direction=="stop") {
+		motorG.brake();
+		motorD.brake();
+		time = 100;
+	}
+	board.wait(1000, function() {
+	  motorG.brake();
+	  motorD.brake();
+	});
 }
 function servoChange (direction) {
 	arduinoServos.steering.stop();
@@ -492,4 +495,39 @@ function autonomous(socket, proximity) {
       motorG.brake();
       motorD.brake();
     });
+}
+
+
+function addmysql() {
+var _mysql = require('mysql');
+
+var HOST = 'localhost';
+var PORT = 3306;
+var MYSQL_USER = 'root';
+var MYSQL_PASS = 'clic2clic';
+var DATABASE = 'rpi';
+var TABLE = 'sensor';
+var random=Math.random() * (100 - 0) + 0;
+var mysql = _mysql.createConnection({
+    host: HOST,
+    port: PORT,
+    user: MYSQL_USER,
+    password: MYSQL_PASS,
+});
+
+mysql.query('use ' + DATABASE);
+
+  mysql.query('INSERT INTO '+TABLE+' (data) VALUES ("'+random+'")');
+ 
+  	/*serialport.on('open', function(){ 
+	  serialport.on('data', function(data){   
+    console.log(''+data); 
+   
+ 
+   
+	});*/
+
+
+}); 
+	
 }
